@@ -1,0 +1,19 @@
+---
+// Logo: o ícone do app (quadrado preto arredondado com o símbolo de energia em verde-menta,
+// redesenhado em SVG fiel a assets/icon.png do repositório da ferramenta) + o nome em texto.
+interface Props {
+  href?: string;
+}
+const { href = '/' } = Astro.props;
+---
+
+<a class="logo" href={href} aria-label="desliga-remoto, início">
+  <svg class="logo-marca" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+    <rect class="placa" width="32" height="32" rx="7.2"></rect>
+    <g class="energia" stroke-width="2.5" stroke-linecap="round">
+      <path d="M16 7.6v7.6"></path>
+      <path d="M20.8 12.9A7.2 7.2 0 1 1 11.2 12.9"></path>
+    </g>
+  </svg>
+  <span class="logo-texto" aria-hidden="true">desliga<span>-remoto</span></span>
+</a>

@@ -1,0 +1,17 @@
+---
+import Base from '@/layouts/Base.astro';
+import Cabecalho from '@/components/Cabecalho.astro';
+import Rodape from '@/components/Rodape.astro';
+---
+
+<Base title="Página não encontrada | desliga-remoto" description="Esta página não existe no site do desliga-remoto." noindex>
+  <Cabecalho slot="topo" base="/" />
+  <section class="miolo pagina-erro" aria-labelledby="titulo-erro">
+    <div>
+      <h1 id="titulo-erro">Esta página foi desligada</h1>
+      <p class="texto-secao">A página que você procurou não existe ou mudou de endereço. Volte ao início para ver o que o desliga-remoto faz.</p>
+      <p style="margin-top: 1.5rem"><a class="btn btn-primario" href="/">Voltar ao início</a></p>
+    </div>
+  </section>
+  <Rodape slot="rodape" />
+</Base>

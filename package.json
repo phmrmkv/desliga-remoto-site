@@ -1,0 +1,27 @@
+{
+  "name": "desliga-remoto-site",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de apresentação do desliga-remoto, app para Windows que agenda o desligamento do PC e controla a energia pelo celular (em desenvolvimento).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview --port 4401",
+    "check": "astro check",
+    "marca": "node scripts/gerar-marca.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.5",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.12",
+    "tailwindcss": "^4.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3"
+  }
+}

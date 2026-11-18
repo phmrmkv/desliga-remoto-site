@@ -1,0 +1,17 @@
+---
+import Logo from './Logo.astro';
+import CreditoPHMR from './CreditoPHMR.astro';
+---
+
+<footer class="rodape">
+  <div class="miolo rodape-grade">
+    <div class="rodape-marca">
+      <Logo />
+      <p>Ferramenta em desenvolvimento pela PHMR Tech Solutions.</p>
+    </div>
+    <div class="rodape-credito">
+      {/* O rodapé é escuro nos dois temas: usa o logo de cores claras. */}
+      <CreditoPHMR fundo="escuro" />
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,388 @@
+---
+import Base from '@/layouts/Base.astro';
+import Cabecalho from '@/components/Cabecalho.astro';
+import Rodape from '@/components/Rodape.astro';
+import Dialogos from '@/components/Dialogos.astro';
+
+// Marcas do relógio em volta do anel (decorativas): 60 traços, os de cada 5 mais longos.
+const marcas = Array.from({ length: 60 }, (_, i) => {
+  const a = (i * 6 * Math.PI) / 180;
+  const longa = i % 5 === 0;
+  const r1 = longa ? 147 : 150;
+  const r2 = 155;
+  const p = (r: number) => [(160 + r * Math.sin(a)).toFixed(2), (160 - r * Math.cos(a)).toFixed(2)];
+  const [x1, y1] = p(r1);
+  const [x2, y2] = p(r2);
+  return `M${x1} ${y1}L${x2} ${y2}`;
+}).join('');
+
+const grupos = [
+  {
+    titulo: 'Agendar desligar ou reiniciar',
+    resumo: 'Do jeito que você já pensa: daqui a um tempo ou em um horário.',
+    itens: [
+      ['Atalhos de tempo.', 'De 1 minuto a 4 horas com um toque. Dá para digitar outro tempo, até 7 dias.'],
+      ['Em um horário.', 'Escolha as 23:30, por exemplo. Se a hora de hoje já passou, vale para amanhã.'],
+      ['Agora.', 'O botão de desligar ou reiniciar agora age em poucos segundos.'],
+      ['Cancelar.', 'O agendamento pode ser cancelado a qualquer momento, no PC ou pelo celular.'],
+    ],
+  },
+  {
+    titulo: 'Rotinas que se repetem',
+    resumo: 'Para o PC desligar sozinho na hora certa, todos os dias que você escolher.',
+    itens: [
+      ['Dias e horário.', 'Cada rotina desliga ou reinicia o PC em certos dias da semana, num horário fixo. Cabem até 10 rotinas.'],
+      ['Aviso de 1 minuto.', 'Quando chega a hora, o desligamento é agendado para 1 minuto depois, e dá para cancelar.'],
+      ['Sem atropelar.', 'Se já houver um agendamento ativo, a rotina daquele dia é ignorada e isso fica registrado.'],
+      ['Só se o PC estiver ligado e acordado.', 'A rotina não liga o PC nem acorda um PC suspenso.'],
+    ],
+  },
+  {
+    titulo: 'Outras ações de energia',
+    resumo: 'Para quando você não quer desligar, só deixar o PC de lado.',
+    itens: [
+      ['Bloquear a tela.', 'O Windows vai para a tela de bloqueio e o painel continua funcionando.'],
+      ['Suspender.', 'O PC dorme. O painel fica fora do ar até alguém acordá-lo.'],
+      ['Hibernar.', 'O PC salva tudo no disco e desliga. Só aparece disponível se a hibernação estiver ligada no Windows.'],
+    ],
+  },
+  {
+    titulo: 'Controle pelo celular',
+    resumo: 'O mesmo painel do PC, aberto no navegador do celular.',
+    itens: [
+      ['QR code ou PIN.', 'Você vincula o celular apontando a câmera para o QR do painel, ou digitando o endereço e o PIN de 6 números.'],
+      ['Aparelhos vinculados.', 'O painel do PC lista cada celular com nome (como Android · Chrome), data de entrada e último acesso, e tem o botão para desconectar um deles.'],
+      ['Atalho na tela inicial.', 'Dá para adicionar o painel à tela inicial do celular, como se fosse um aplicativo.'],
+    ],
+  },
+  {
+    titulo: 'Ícone na bandeja do Windows',
+    resumo: 'O programa fica ao lado do relógio, sem ocupar a tela.',
+    itens: [
+      ['Mostra o que está agendado.', 'O ícone muda quando há desligamento ou reinício marcado, e o menu mostra o horário e o tempo que falta.'],
+      ['Menu rápido.', 'Abrir o painel, desligar em 30 minutos, 1 hora ou 2 horas, reiniciar em 1 minuto, cancelar o agendamento e conectar o celular.'],
+      ['Sair não cancela.', 'Fechar o programa não desfaz um agendamento que já foi feito.'],
+    ],
+  },
+  {
+    titulo: 'Ajustes do PC',
+    resumo: 'Quatro opções que mudam como o programa se comporta.',
+    itens: [
+      ['Iniciar com o Windows.', 'Para conseguir desligar pelo celular depois de reiniciar o PC.'],
+      ['Bloquear a tela ao iniciar o Windows.', 'Pensado para quem usa o login automático: o PC liga sozinho e o painel volta, mas a tela fica bloqueada. Só vale logo depois de ligar o PC.'],
+      ['Não deixar o PC dormir.', 'Evita a suspensão automática. A tela ainda pode apagar.'],
+      ['Forçar o fechamento de programas.', 'Garante o desligamento mesmo com programa travado. O que não foi salvo se perde.'],
+    ],
+  },
+  {
+    titulo: 'Mais algumas coisas',
+    resumo: 'Recursos que o painel também traz.',
+    itens: [
+      ['Ligar à distância.', 'O painel prepara o PC para o Wake on LAN (liga a opção na placa de rede e desativa a Inicialização Rápida). Falta ativar na BIOS, deixar o PC no cabo e usar um app de Wake on LAN no celular.'],
+      ['Ver a tela com o RustDesk.', 'O desliga-remoto não transmite a tela. Ele detecta o RustDesk, mostra o endereço para digitar no app e abre o programa no PC.'],
+      ['O que está rodando.', 'Uso do processador e da memória, tempo ligado e a lista de programas abertos.'],
+      ['Atividade recente.', 'Uma lista do que foi feito (agendou, cancelou, aparelho conectado), com a origem: PC, celular, bandeja ou rotina.'],
+    ],
+  },
+];
+
+const passos = [
+  {
+    titulo: 'Abra o programa no PC',
+    texto: 'Na primeira vez, ele se instala na pasta do seu usuário, cria os atalhos e passa a ficar na bandeja do Windows. Não precisa de conta.',
+  },
+  {
+    titulo: 'Agende ali mesmo',
+    texto: 'No painel ou no menu da bandeja: desligar ou reiniciar daqui a um tempo, ou em um horário. O anel do painel mostra quanto falta.',
+  },
+  {
+    titulo: 'Conecte o celular',
+    texto: 'No painel, em Celular, aparece um QR code. Com o celular no mesmo Wi-Fi, aponte a câmera e abra o link. Se preferir, digite o endereço no navegador e o PIN de 6 números que aparece no PC.',
+  },
+  {
+    titulo: 'Controle de onde estiver na rede',
+    texto: 'Agende, cancele, bloqueie, suspenda ou hiberne pelo celular. Cada QR vale para um aparelho só: depois que um celular entra, o código muda.',
+  },
+];
+
+const icones = {
+  escudo: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  celular: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  relogio: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  cadeado: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  tela: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  sair: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+};
+
+const seguranca = [
+  {
+    icone: icones.cadeado,
+    titulo: 'Sem entrar, nada funciona',
+    texto: 'Quem abre o endereço do painel sem estar vinculado não vê o estado do PC nem consegue mandar nenhum comando.',
+  },
+  {
+    icone: icones.celular,
+    titulo: 'QR de uso único e PIN',
+    texto: 'O QR code vale para um aparelho só e muda assim que alguém entra com ele. Quem fotografou o QR depois disso não consegue usar. O PIN de 6 números aparece só no painel do PC.',
+  },
+  {
+    icone: icones.escudo,
+    titulo: 'Bloqueio contra tentativas',
+    texto: 'Depois de algumas tentativas erradas, aquele endereço fica bloqueado por 5 minutos. Se as tentativas erradas continuam vindo, entra o bloqueio global de entradas: por 5 minutos o PC não aceita novas entradas de ninguém. O painel do PC avisa e o histórico registra.',
+  },
+  {
+    icone: icones.sair,
+    titulo: 'Cada aparelho é separado',
+    texto: 'Cada celular tem a sua própria entrada. Perdeu um aparelho? No PC você desconecta só ele, ou gera um novo PIN para desconectar todos. Quem some por 90 dias também precisa entrar de novo.',
+  },
+  {
+    icone: icones.tela,
+    titulo: 'O que muda só no PC',
+    texto: 'Criar rotinas, trocar o PIN, desconectar aparelhos, iniciar com o Windows, bloquear a tela na inicialização, preparar a rede e desinstalar só funcionam no painel do próprio PC. O celular agenda, cancela e controla a energia.',
+  },
+  {
+    icone: icones.relogio,
+    titulo: 'Pedidos de outros sites são recusados',
+    texto: 'O painel recusa comandos que venham de outras páginas abertas no navegador, para que um site qualquer não consiga mandar o PC desligar.',
+  },
+];
+
+const limites = [
+  'A conexão com o painel é HTTP comum dentro da sua rede, sem criptografia própria. Use em uma rede em que você confia, como a de casa.',
+  'Quem estiver olhando o PC pode ver o PIN e o QR no painel. Use a tela de bloqueio do Windows.',
+  'Para usar fora de casa, o app mostra um endereço alternativo se o Tailscale (instalado à parte) estiver no PC e no celular. Sem ele, só funciona na mesma rede.',
+  'A senha do RustDesk fica só no RustDesk. O desliga-remoto nunca vê nem guarda essa senha.',
+];
+
+const requisitos = [
+  ['Sistema do PC', 'Windows 10 ou 11. Não há versão para Mac nem Linux.'],
+  ['O programa', 'Um único arquivo .exe, sem instalador. Na primeira abertura ele se copia para a pasta do seu usuário e cria os atalhos, sem pedir permissão de administrador.'],
+  ['Janela do painel', 'Abre numa janela própria do Windows (WebView2). Se ela não estiver disponível, abre o painel no Edge ou no Chrome.'],
+  ['Celular', 'Qualquer celular com navegador, iPhone ou Android. Não precisa instalar nada nele.'],
+  ['Rede', 'O celular precisa estar na mesma rede do PC (Wi-Fi ou cabo). Pode ser preciso liberar o programa no firewall do Windows, e o painel tem um botão para isso (pede permissão de administrador).'],
+  ['Fora da rede de casa', 'Opcional: Tailscale no PC e no celular, com a mesma conta.'],
+];
+
+const perguntas = [
+  { p: 'Já posso baixar?', r: 'Ainda não. O desliga-remoto está em desenvolvimento e não tem download público. O botão da página só avisa isso.' },
+  { p: 'Funciona fora de casa?', r: 'Por padrão, só com o celular na mesma rede que o PC. Se o Tailscale estiver instalado no PC e no celular, com a mesma conta, o painel passa a mostrar um endereço "De qualquer lugar".' },
+  { p: 'E se o PC estiver desligado ou dormindo?', r: 'O painel fica fora do ar, porque o programa roda no próprio PC. Para ligar de novo, existe o Wake on LAN: o painel prepara o PC, mas ainda é preciso ativar a opção na BIOS, usar o cabo de rede e mandar o sinal de outro aparelho.' },
+  { p: 'Dá para cancelar um desligamento?', r: 'Sim, pelo painel do PC, pelo celular ou pelo menu da bandeja. Fechar o programa, por outro lado, não cancela o que já foi agendado.' },
+  { p: 'O que acontece com os programas abertos?', r: 'Por padrão, o Windows fecha os programas na hora de desligar, e o que não foi salvo se perde. Dá para desligar essa opção nos ajustes para o Windows tentar fechar com calma.' },
+  { p: 'Perdi o celular. E agora?', r: 'No painel do PC, desconecte aquele aparelho na lista de aparelhos, ou gere um novo PIN para desconectar todos de uma vez.' },
+  { p: 'Precisa de conta ou de internet?', r: 'Não há conta, nem servidor na nuvem: o programa e o painel rodam no seu PC. O celular só precisa alcançar o PC pela rede.' },
+  { p: 'Funciona no Mac ou no Linux?', r: 'Não. É um programa para Windows.' },
+];
+---
+
+<Base
+  title="desliga-remoto: agende o desligamento do PC e controle a energia pelo celular"
+  description="App para Windows que agenda o desligamento do PC e controla a energia pelo celular, na mesma rede. Rotinas, bandeja do sistema e aparelhos vinculados. Em desenvolvimento, sem download público."
+>
+  <Cabecalho slot="topo" />
+
+  <section class="hero" id="inicio" aria-labelledby="titulo-hero">
+    <div class="miolo hero-grade">
+      <div>
+        <h1 id="titulo-hero">O PC desliga <em>na hora certa.</em></h1>
+        <p class="hero-texto">
+          App para Windows que agenda o desligamento do PC e controla a energia pelo celular. Você marca, acompanha e cancela de onde estiver na rede.
+        </p>
+        <div class="hero-acoes">
+          <button type="button" class="btn btn-primario" data-abrir="dlg-baixar">Baixar para Windows</button>
+          <a class="btn btn-secundario" href="#o-que-faz">Ver o que faz</a>
+        </div>
+        <p class="hero-nota">Em desenvolvimento: ainda não há download público.</p>
+      </div>
+
+      <div class="anel-bloco">
+        <div class="anel" role="img" aria-label="Exemplo: um anel de contagem regressiva que se fecha até as 23:30, a hora marcada para desligar o PC.">
+          <svg viewBox="0 0 320 320" fill="none" aria-hidden="true" focusable="false">
+            <path class="anel-marcas" d={marcas} stroke-width="1.6" stroke-linecap="round"></path>
+            <g transform="rotate(-90 160 160)">
+              <circle class="anel-trilha" cx="160" cy="160" r="132" stroke-width="18"></circle>
+              <circle class="anel-prog" cx="160" cy="160" r="132" stroke-width="18" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"></circle>
+            </g>
+          </svg>
+          <div class="anel-centro" aria-hidden="true">
+            <span class="anel-rotulo">Desliga às</span>
+            <span class="anel-hora">23:30</span>
+            <span class="anel-etiqueta">Exemplo</span>
+          </div>
+        </div>
+        <p class="anel-legenda">Exemplo ilustrativo de um desligamento agendado. O anel se fecha até a hora marcada.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao fundo-faixa" id="o-que-faz" aria-labelledby="titulo-faz">
+    <div class="miolo">
+      <div data-reveal>
+        <h2 class="titulo-secao" id="titulo-faz">O que o desliga-remoto faz</h2>
+        <p class="texto-secao">Tudo isto existe no código atual do programa, na versão 1.2.0.</p>
+      </div>
+      <div class="grupos">
+        {grupos.map((g) => (
+          <article class="grupo" data-reveal>
+            <div>
+              <h3>{g.titulo}</h3>
+              <p class="grupo-resumo">{g.resumo}</p>
+            </div>
+            <ul class="itens">
+              {g.itens.map(([t, d]) => (
+                <li><b>{t}</b> <span>{d}</span></li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="como-funciona" aria-labelledby="titulo-como">
+    <div class="miolo passos-grade">
+      <div data-reveal>
+        <h2 class="titulo-secao" id="titulo-como">Do PC ao celular em quatro passos</h2>
+        <p class="texto-secao">O programa roda no seu PC e atende o celular pela rede local. Nada passa por um servidor de terceiros.</p>
+      </div>
+      <ol class="passos">
+        {passos.map((p, i) => (
+          <li class="passo" data-reveal style={`--i: ${i}`}>
+            <h3>{p.titulo}</h3>
+            <p>{p.texto}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="secao fundo-faixa" id="painel" aria-labelledby="titulo-painel">
+    <div class="miolo painel-grade">
+      <figure class="celular" data-reveal>
+        <div class="celular-tela">
+          <div class="celular-topo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+              <rect width="32" height="32" rx="7.2" fill="#000" stroke="#2f3a37" stroke-width="0.6"></rect>
+              <g stroke="#2ec4a6" stroke-width="2.5" stroke-linecap="round"><path d="M16 7.6v7.6"></path><path d="M20.8 12.9A7.2 7.2 0 1 1 11.2 12.9"></path></g>
+            </svg>
+            <div><b>desliga-remoto</b><small>Seu PC</small></div>
+          </div>
+          <div class="celular-cartao">
+            <h3>Agendar</h3>
+            <fieldset>
+              <legend>Ação</legend>
+              <div class="opcoes">
+                <label class="opcao"><input type="radio" name="acao" value="desligamento" checked data-acao /><span>Desligar</span></label>
+                <label class="opcao"><input type="radio" name="acao" value="reinício" data-acao /><span>Reiniciar</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Daqui a</legend>
+              <div class="opcoes">
+                <label class="opcao"><input type="radio" name="tempo" value="15 min" data-tempo /><span>15 min</span></label>
+                <label class="opcao"><input type="radio" name="tempo" value="30 min" checked data-tempo /><span>30 min</span></label>
+                <label class="opcao"><input type="radio" name="tempo" value="1 hora" data-tempo /><span>1 hora</span></label>
+                <label class="opcao"><input type="radio" name="tempo" value="2 horas" data-tempo /><span>2 horas</span></label>
+              </div>
+            </fieldset>
+            <p class="agendar-saida" aria-live="polite" data-saida>Agendar desligamento em 30 min</p>
+            <p class="agendar-saida-nota">Ilustração: aqui nada é agendado.</p>
+          </div>
+          <div class="celular-aparelhos">
+            <div><b>Android · Chrome</b><span>último acesso há 5 min</span></div>
+            <div><b>iPhone · Safari</b><span>último acesso ontem</span></div>
+          </div>
+        </div>
+        <figcaption class="sr-only">Ilustração do painel do desliga-remoto aberto no celular, com a opção de agendar desligar ou reiniciar.</figcaption>
+      </figure>
+      <div class="painel-texto" data-reveal>
+        <span class="etiqueta-ilustracao">Ilustração</span>
+        <h2 class="titulo-secao" id="titulo-painel">O painel, na palma da mão</h2>
+        <p class="texto-secao">
+          Esta é uma ilustração feita em código, inspirada no painel de agendamento. Os nomes de aparelhos e os horários são exemplos. A tela real pode ser um pouco diferente.
+        </p>
+        <ul>
+          <li>Escolha desligar ou reiniciar e o tempo, e o botão já diz o que vai ser agendado.</li>
+          <li>Abaixo ficam o botão de cancelar, as outras ações de energia e a atividade recente.</li>
+          <li>O painel tem tema claro e escuro, e guarda a sua escolha.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="seguranca" aria-labelledby="titulo-seg">
+    <div class="miolo">
+      <div data-reveal>
+        <h2 class="titulo-secao" id="titulo-seg">Como o acesso pelo celular é protegido</h2>
+        <p class="texto-secao">Desligar um PC é uma ação séria. Por isso o painel só aceita quem você vinculou, e é claro sobre o que ele não faz.</p>
+      </div>
+      <div class="seg-grade">
+        <ul class="seg-lista">
+          {seguranca.map((s, i) => (
+            <li data-reveal style={`--i: ${i}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" set:html={s.icone} />
+              <div>
+                <h3>{s.titulo}</h3>
+                <p>{s.texto}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <aside class="limites" data-reveal aria-labelledby="titulo-limites">
+          <h3 id="titulo-limites">O que vale saber</h3>
+          <ul>
+            {limites.map((l) => <li>{l}</li>)}
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao fundo-faixa" id="requisitos" aria-labelledby="titulo-req">
+    <div class="miolo">
+      <div data-reveal>
+        <h2 class="titulo-secao" id="titulo-req">O que você precisa</h2>
+      </div>
+      <dl class="reqs">
+        {requisitos.map(([t, d], i) => (
+          <div class="req" data-reveal style={`--i: ${i}`}>
+            <dt>{t}</dt>
+            <dd>{d}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="secao" id="perguntas" aria-labelledby="titulo-perguntas">
+    <div class="miolo">
+      <div data-reveal>
+        <h2 class="titulo-secao" id="titulo-perguntas">Perguntas frequentes</h2>
+      </div>
+      <div class="perguntas" data-reveal>
+        {perguntas.map((q) => (
+          <details class="pergunta">
+            <summary>
+              {q.p}
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"></path></svg>
+            </summary>
+            <p class="pergunta-resposta">{q.r}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="miolo" aria-labelledby="titulo-final">
+    <div class="chamada" data-reveal>
+      <h2 id="titulo-final">Ainda em desenvolvimento</h2>
+      <p>
+        O desliga-remoto ainda não tem versão para baixar. Esta página mostra o que a ferramenta faz hoje.
+      </p>
+      <button type="button" class="btn btn-primario" data-abrir="dlg-baixar">Baixar para Windows</button>
+    </div>
+  </section>
+
+  <Rodape slot="rodape" />
+  <Dialogos />
+</Base>
